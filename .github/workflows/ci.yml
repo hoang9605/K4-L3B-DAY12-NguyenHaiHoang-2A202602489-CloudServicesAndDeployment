@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      # Giá trị giả chỉ dùng cho test; không phải API key của service Render.
+      AGENT_API_KEY: ci-dummy-key
+      REDIS_URL: fake://
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run CP1–CP4 tests
+        # CP5 gọi cloud thật; bonus kiểm tra badge của chính workflow này.
+        # Docker được build riêng ở job build nên không lặp test Docker tại đây.
+        run: python -m pytest tests/test_cp1.py tests/test_cp2.py tests/test_cp3.py tests/test_cp4.py -q -m 'not docker'
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build production Docker image
+        run: docker build -t day12-agent:ci .
+
+  deploy:
+    needs: [test, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+    steps:
+      - name: Deploy the tested commit to Render
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo '::error::Set RENDER_DEPLOY_HOOK_URL in GitHub Actions secrets.'
+            exit 1
+          fi
+          # ref bảo đảm Render deploy đúng commit vừa qua test và build.
+          curl --fail-with-body --silent --show-error --max-time 30 \
+            --request POST "${RENDER_DEPLOY_HOOK_URL}&ref=${GITHUB_SHA}"

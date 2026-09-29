@@ -1,5 +1,7 @@
 # K4 — Level 3B, Ngày 12: Hạ Tầng Cloud & Deployment (240 phút)
 
+![CI](https://github.com/hoang9605/K4-L3B-DAY12-NguyenHaiHoang-2A202602489-CloudServicesAndDeployment/actions/workflows/ci.yml/badge.svg)
+
 Đưa một AI agent từ `localhost:8000` lên một địa chỉ công khai mà người khác
 gọi được, có bảo mật, có giới hạn chi phí, và không sập khi bạn deploy bản mới.
 
@@ -252,6 +254,16 @@ biểu hay pitching. Muốn chấm nhanh phần bắt buộc thôi: `python grad
 **Không deploy được lên cloud?** Đặt `LOCAL_FALLBACK=true` trong `.env`, chạy
 `docker compose up -d`, chụp màn hình vào `screenshots/`. CP5 khi đó tối đa
 9/15 điểm. Vẫn hơn là bỏ trắng.
+
+---
+
+## Bật CI/CD cho Render (bonus)
+
+1. Trong Render, mở `day12-agent` → **Settings** → **Deploy Hook**, sao chép URL bí mật. Ở **Auto-Deploy**, chọn **Off** để push không vượt qua cổng test; `render.yaml` cũng lưu lựa chọn này.
+2. Trong GitHub repo, mở **Settings → Secrets and variables → Actions → New repository secret**. Đặt tên `RENDER_DEPLOY_HOOK_URL` và dán URL vào **giá trị secret**, không ghi vào file hay terminal log.
+3. Push workflow lên `main`. Tab **Actions** phải cho thấy `test → build → deploy` xanh; pull request chỉ chạy `test → build`. Badge ở đầu README sẽ đổi thành `passing` sau một lần chạy thành công.
+
+Deploy Hook chỉ xác nhận Render đã **bắt đầu** deploy; xem tiếp trạng thái Live và log trên Render để chắc bản mới chạy được. [Tài liệu Deploy Hook của Render](https://render.com/docs/deploy-hooks).
 
 ---
 
