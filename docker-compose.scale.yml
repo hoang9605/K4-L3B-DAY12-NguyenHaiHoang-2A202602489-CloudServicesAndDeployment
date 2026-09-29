@@ -1,0 +1,5 @@
+# Khi chạy nhiều agent, bỏ map cổng host 8000 để các replica không tranh nhau cổng.
+# Dùng cùng docker-compose.yml: docker compose -f docker-compose.yml -f docker-compose.scale.yml up -d --scale agent=3
+services:
+  agent:
+    ports: !override []
