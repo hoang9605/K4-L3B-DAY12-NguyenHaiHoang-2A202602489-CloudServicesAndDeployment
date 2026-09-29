@@ -57,7 +57,7 @@ POST /ask, có X-API-Key hợp lệ → HTTP 200 (xác nhận bằng test CP5)
 
 ## Bằng chứng ảnh
 
-- `screenshots/dashboard.png` — trang Render hiển thị web service và Key Value.
-- `screenshots/health.png` — kết quả gọi `/health` trên URL công khai.
+- `screenshots/dashboard.png` — Blueprint hiển thị `day12-agent` ở trạng thái Deployed và `day12-redis` ở trạng thái Available.
+- `screenshots/health.png` — kết quả `/health` HTTP 200 và `/ready` HTTP 200 trên URL công khai.
 
-Ảnh sẽ được thêm sau khi chụp dashboard và kết quả health, không hiển thị giá trị secret.
+Hai ảnh đã được lưu trong repository và không hiển thị giá trị secret.
