@@ -29,16 +29,21 @@ Chỉ ghi tên và nguồn cấu hình, không ghi giá trị secret.
 | `MONTHLY_BUDGET_USD` | Blueprint: 10.0 |
 | `LOG_LEVEL` | Blueprint: INFO |
 
-## Kết quả kiểm tra URL công khai
+## Lệnh kiểm tra URL công khai
 
-Kiểm tra bằng PowerShell `curl.exe` ngày 29/09/2026 tại URL công khai ở trên.
+Chạy trong PowerShell từ gốc repository. Script đọc `DEPLOY_API_KEY` từ `.env` cục bộ để kiểm tra có xác thực và rate limit, nhưng không in khóa. Dấu `\` xuống dòng của Bash không dùng được trong PowerShell.
 
 ```powershell
 $URL = 'https://day12-agent-un6x.onrender.com'
 curl.exe -i "$URL/health"
 curl.exe -i "$URL/ready"
 curl.exe -i -X POST "$URL/ask" -H "Content-Type: application/json" --data-raw '{"question":"Hello"}'
+.\.venv\Scripts\python.exe scripts\smoke_cp5.py
 ```
+
+## Kết quả chạy thật
+
+Output ngày 29/09/2026 (câu trả lời và user ID không chứa secret):
 
 ```text
 GET /health → HTTP 200
@@ -50,7 +55,11 @@ GET /ready → HTTP 200
 POST /ask, không có X-API-Key → HTTP 401
 {"detail":"invalid or missing API key"}
 
-POST /ask, có X-API-Key hợp lệ → HTTP 200 (xác nhận bằng test CP5)
+POST /ask, có X-API-Key hợp lệ → HTTP 200
+{"answer":"Câu hỏi hay. Deploy là gì thường được giải quyết bằng cách chuẩn hóa môi trường chạy: cùng một image chạy giống nhau ở laptop và trên cloud.","user_id":"sv-test","history_length":0,"cost_usd":2.145e-05,"tokens":{"in":3,"out":35}}
+
+Rate limit, 15 request cùng user:
+200 200 200 200 200 200 200 200 200 200 429 429 429 429 429
 ```
 
 `pytest tests/test_cp5.py -v --tb=short`: 9 passed, 4 skipped (các test local fallback).
