@@ -41,7 +41,7 @@ services:
       - "8000:8000"
     environment:
       # Compose đọc key từ .env; giá trị secret không nằm trong file này.
-      AGENT_API_KEY: ${AGENT_API_KEY}
+      AGENT_API_KEY: ${AGENT_API_KEY:?AGENT_API_KEY must be set}
       # Trong mạng Compose, tên service redis chính là hostname.
       REDIS_URL: redis://redis:6379/0
     depends_on:

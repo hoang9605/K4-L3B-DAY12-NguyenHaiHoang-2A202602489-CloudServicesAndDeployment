@@ -12,6 +12,7 @@ venv
 
 # Loại file phụ trợ; builder vẫn nhận requirements.txt, runtime nhận app/ và utils/.
 tests
+scripts
 screenshots
 *.md
 grade.py
