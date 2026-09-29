@@ -35,10 +35,23 @@ services:
       timeout: 3s
       retries: 5
 
-  # TODO (CP2): khai báo service `agent` ở đây
-  # agent:
-  #   build: .
-  #   ...
+  agent:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # Compose đọc key từ .env; giá trị secret không nằm trong file này.
+      AGENT_API_KEY: ${AGENT_API_KEY}
+      # Trong mạng Compose, tên service redis chính là hostname.
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ.get('PORT', '8000') + '/health', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
   redis-data:
