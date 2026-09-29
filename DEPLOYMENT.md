@@ -1,101 +1,59 @@
-# Thông Tin Deploy — Checkpoint 5
+# Thông tin triển khai — CP5
 
-> Điền file này sau khi deploy xong. `pytest tests/test_cp5.py` đọc file này
-> để tìm địa chỉ service của bạn và gọi thử.
->
-> **Chỉ ghi TÊN biến môi trường, tuyệt đối không dán giá trị API key vào đây.**
-> Repo này công khai — dán khóa vào là mất khóa.
-
-## Thông Tin Học Viên
+## Học viên và repository
 
 | Mục | Nội dung |
-|-----|----------|
-| Họ và tên | (điền họ tên) |
-| Mã học viên | (điền mã học viên) |
-| Repo | (điền link repo K4-L3B-DAY12-HoVaTen-MSSV-CloudServicesAndDeployment) |
+|---|---|
+| Họ và tên | Nguyễn Hải Hoàng |
+| Mã học viên | 2A202602489 |
+| Repository | https://github.com/hoang9605/K4-L3B-DAY12-NguyenHaiHoang-2A202602489-CloudServicesAndDeployment |
 
 ## Service
 
 | Mục | Nội dung |
-|-----|----------|
-| Public URL | https://TODO-thay-bang-url-that.up.railway.app |
-| Platform | Railway / Render / Cloud Run — (điền platform bạn dùng) |
-| Ngày deploy | (điền ngày) |
+|---|---|
+| Platform | Render Blueprint |
+| Public URL | https://day12-agent-un6x.onrender.com |
+| Ngày kiểm tra | 29/09/2026 |
 
-## Biến Môi Trường Đã Set Trên Cloud
+## Biến môi trường trên Render
 
-Ghi tên biến và **nguồn giá trị**, không ghi giá trị:
+Chỉ ghi tên và nguồn cấu hình, không ghi giá trị secret.
 
-| Biến | Đã set | Ghi chú |
-|------|--------|---------|
-| `PORT` | ✅ | platform tự gán |
-| `AGENT_API_KEY` | ✅ | đặt trong dashboard, không nằm trong repo |
-| `REDIS_URL` | ✅ | (điền: Redis add-on của platform / Upstash / ...) |
-| `RATE_LIMIT_PER_MINUTE` | ✅ | 10 |
-| `MONTHLY_BUDGET_USD` | ✅ | 10.0 |
-| `LOG_LEVEL` | ✅ | INFO |
+| Biến | Nguồn |
+|---|---|
+| `PORT` | Render tự cấp; Dockerfile đọc `${PORT:-8000}` |
+| `AGENT_API_KEY` | Secret nhập khi tạo Blueprint |
+| `REDIS_URL` | Internal connection string của `day12-redis` qua Blueprint |
+| `RATE_LIMIT_PER_MINUTE` | Blueprint: 10 |
+| `MONTHLY_BUDGET_USD` | Blueprint: 10.0 |
+| `LOG_LEVEL` | Blueprint: INFO |
 
-## Lệnh Kiểm Tra
+## Kết quả kiểm tra URL công khai
 
-Thay `<URL>` bằng Public URL ở trên:
+Kiểm tra bằng PowerShell `curl.exe` ngày 29/09/2026 tại URL công khai ở trên.
 
-```bash
-# 1. Liveness — mong đợi 200 {"status":"ok"}
-curl -i <URL>/health
-
-# 2. Readiness — mong đợi 200 {"status":"ready"} (đã nối được Redis)
-curl -i <URL>/ready
-
-# 3. Không có API key — mong đợi 401
-curl -i -X POST <URL>/ask \
-  -H "Content-Type: application/json" \
-  -d '{"question":"Hello"}'
-
-# 4. Có API key — mong đợi 200 kèm câu trả lời
-curl -i -X POST <URL>/ask \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $AGENT_API_KEY" \
-  -H "X-User-Id: sv-test" \
-  -d '{"question":"Deploy là gì?"}'
-
-# 5. Rate limit — gọi 15 lần, những lần cuối phải trả 429
-for i in $(seq 1 15); do
-  curl -s -o /dev/null -w "%{http_code} " -X POST <URL>/ask \
-    -H "Content-Type: application/json" \
-    -H "X-API-Key: $AGENT_API_KEY" \
-    -H "X-User-Id: sv-test" \
-    -d '{"question":"test"}'
-done; echo
+```powershell
+$URL = 'https://day12-agent-un6x.onrender.com'
+curl.exe -i "$URL/health"
+curl.exe -i "$URL/ready"
+curl.exe -i -X POST "$URL/ask" -H "Content-Type: application/json" --data-raw '{"question":"Hello"}'
 ```
 
-## Kết Quả Chạy Thật
+```text
+GET /health → HTTP 200
+{"status":"ok","service":"day12-agent","version":"1.0.0"}
 
-Dán output của các lệnh trên vào đây:
+GET /ready → HTTP 200
+{"status":"ready","redis":true}
 
+POST /ask, không có X-API-Key → HTTP 401
+{"detail":"invalid or missing API key"}
 ```
-(điền output)
-```
 
-## Ảnh Chụp Màn Hình
+## Bằng chứng ảnh
 
-Đặt ảnh trong thư mục `screenshots/`:
+- `screenshots/dashboard.png` — trang Render hiển thị web service và Key Value.
+- `screenshots/health.png` — kết quả gọi `/health` trên URL công khai.
 
-- `screenshots/dashboard.png` — trang quản lý service trên platform
-- `screenshots/health.png` — kết quả gọi `/health` từ trình duyệt hoặc curl
-
----
-
-## Nếu Dùng Phương Án Dự Phòng
-
-Không đăng ký được tài khoản cloud? Vẫn nộp được bài, nhưng CP5 tối đa 60% điểm:
-
-1. Đặt `LOCAL_FALLBACK=true` trong `.env`
-2. Chạy `docker compose up -d` rồi kiểm tra `docker compose ps`
-3. Chụp màn hình vào `screenshots/`
-4. Chạy `pytest tests/test_cp5.py -v` — bộ test sẽ tự chuyển sang kiểm tra
-   `http://localhost:8000`
-5. Ghi rõ lý do không deploy được vào phần dưới đây:
-
-```
-(điền lý do nếu dùng phương án dự phòng, ngược lại xóa mục này)
-```
+Ảnh sẽ được thêm sau khi chụp dashboard và kết quả health, không hiển thị giá trị secret.
