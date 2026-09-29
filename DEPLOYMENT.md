@@ -49,7 +49,11 @@ GET /ready → HTTP 200
 
 POST /ask, không có X-API-Key → HTTP 401
 {"detail":"invalid or missing API key"}
+
+POST /ask, có X-API-Key hợp lệ → HTTP 200 (xác nhận bằng test CP5)
 ```
+
+`pytest tests/test_cp5.py -v --tb=short`: 9 passed, 4 skipped (các test local fallback).
 
 ## Bằng chứng ảnh
 
